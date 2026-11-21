@@ -1,3 +1,5 @@
+### Kudos to [Nikola Genov](https://www.instagram.com/nik0la_02/)
+
 # 🐍 Snake Game
 
 Retro arcade Snake game built with plain HTML, CSS and JavaScript (ES modules).
