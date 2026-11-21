@@ -1,4 +1,4 @@
-### Kudos to [Nikola Genov](https://www.instagram.com/nik0la_02/)
+### Kudos to [Nikola Genov](https://www.instagram.com/nik0la_02/) for creating this game
 
 # 🐍 Snake Game
 
