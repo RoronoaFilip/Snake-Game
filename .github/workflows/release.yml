@@ -1,0 +1,60 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0 or v1.0.0)'
+        required: true
+        type: string
+      draft:
+        description: 'Mark the release as a draft?'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Validate version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${INPUT_VERSION#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid version '$INPUT_VERSION'. Use semver, e.g. 1.0.0 or v1.2.3-beta.1"
+            exit 1
+          fi
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build
+        run: npm run build
+
+      - name: Package release asset
+        run: |
+          cd dist
+          zip -r "../snake-game-${{ steps.version.outputs.tag }}.zip" .
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          IS_DRAFT: ${{ inputs.draft }}
+        run: |
+          FLAGS=""
+          if [ "$IS_DRAFT" = "true" ]; then FLAGS="--draft"; fi
+          gh release create "$TAG" "snake-game-${TAG}.zip" \
+            --target "$GITHUB_SHA" \
+            --title "Snake Game $TAG" \
+            --generate-notes \
+            $FLAGS
