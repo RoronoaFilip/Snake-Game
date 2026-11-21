@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Змия - Ретро Аркадна Игра</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Yantramanav:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="flex flex-col justify-between items-center p-2 sm:p-4 bg-gradient-to-b from-slate-950 via-slate-900 to-black select-none overflow-hidden">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-lg flex items-center justify-between shrink-0 py-1">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl sm:text-3xl animate-pulse">🐍</span>
+            <h1 class="arcade-font text-lg sm:text-2xl font-extrabold tracking-wider text-green-400 neon-text-green">ЗМИЯ</h1>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <!-- Mute/Unmute Audio Toggle -->
+            <button id="soundToggleBtn" class="btn-arcade bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-1.5 text-sm flex items-center gap-1 shadow" title="Включи / Изключи звук">
+                <span id="soundIcon" class="text-base">🔊</span>
+            </button>
+            
+            <!-- Pause Button -->
+            <button id="pauseBtn" class="btn-arcade bg-amber-600/80 hover:bg-amber-500 border border-amber-400/50 text-white rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold flex items-center gap-1 transition shadow" title="Пауза (Space / P)">
+                <span id="pauseIcon">⏸️</span> <span class="hidden sm:inline" id="pauseLabel">Пауза</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Score & Stats Bar -->
+    <section class="w-full max-w-lg glass-panel rounded-2xl p-2 sm:p-3 shrink-0 border border-slate-800 flex justify-around items-center shadow-xl">
+        <div class="text-center">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Точки</div>
+            <div id="scoreVal" class="arcade-font text-xl sm:text-2xl text-green-400 neon-text-green">0</div>
+        </div>
+        <div class="h-6 sm:h-8 w-[1px] bg-slate-700/60"></div>
+        <div class="text-center">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Рекорд</div>
+            <div id="highScoreVal" class="arcade-font text-xl sm:text-2xl text-yellow-400 neon-text-gold">0</div>
+        </div>
+    </section>
+
+    <!-- Main Game Canvas Area (Flex container to adapt fit screen) -->
+    <main id="canvasContainer" class="relative w-full max-w-lg flex-1 min-h-0 my-2 flex items-center justify-center overflow-hidden touch-none">
+        <!-- Canvas Element -->
+        <canvas id="gameCanvas" width="500" height="500" class="max-w-full max-h-full aspect-square rounded-2xl neon-box bg-slate-950 shadow-2xl block touch-none cursor-pointer object-contain"></canvas>
+
+        <!-- Start Overlay Screen -->
+        <div id="startOverlay" class="absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-6 text-center z-10 transition-all">
+            <div class="text-5xl sm:text-6xl mb-3 animate-bounce">🐍</div>
+            <h2 class="arcade-font text-xl sm:text-3xl font-black text-green-400 neon-text-green mb-2">ЗМИЯ ARCADE</h2>
+            <p class="text-slate-300 text-xs sm:text-sm max-w-xs mb-5 leading-relaxed">
+                Плъзнете пръст (Swipe) по екрана или използвайте стрелките за управление!
+            </p>
+            
+            <button id="startBtn" class="btn-arcade arcade-font text-sm sm:text-base bg-green-500 hover:bg-green-400 text-slate-950 font-black px-7 py-3.5 rounded-xl shadow-lg shadow-green-500/30 transition transform hover:scale-105 active:scale-95">
+                ЗАПОЧНИ ИГРАТА
+            </button>
+        </div>
+
+        <!-- Game Over Overlay Screen -->
+        <div id="gameOverOverlay" class="absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-5 text-center z-20 hidden transition-all">
+            <div class="text-4xl sm:text-5xl mb-2">💥</div>
+            <h2 class="arcade-font text-xl sm:text-2xl font-black text-red-500 mb-2">КРАЙ НА ИГРАТА!</h2>
+            
+            <div id="newRecordBadge" class="hidden mb-3 bg-yellow-500/20 border border-yellow-400 text-yellow-300 rounded-full px-4 py-1 text-[10px] sm:text-xs font-bold tracking-widest uppercase animate-pulse">
+                🏆 Нов рекорд!
+            </div>
+
+            <div class="bg-slate-900/90 rounded-xl p-3 sm:p-4 w-full max-w-xs border border-slate-800 my-3 space-y-2 shadow-inner">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400 text-xs sm:text-sm">Финални точки:</span>
+                    <span id="finalScore" class="arcade-font text-lg sm:text-xl text-green-400">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400 text-xs sm:text-sm">Най-добър резултат:</span>
+                    <span id="finalHighScore" class="arcade-font text-lg sm:text-xl text-yellow-400">0</span>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="btn-arcade arcade-font text-xs sm:text-sm bg-green-500 hover:bg-green-400 text-slate-950 font-black px-7 py-3.5 rounded-xl shadow-lg shadow-green-500/30 transition">
+                ИГРАЙ ОТНОВО
+            </button>
+        </div>
+
+        <!-- Pause Overlay Screen -->
+        <div id="pauseOverlay" class="absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-5 text-center z-15 hidden">
+            <div class="text-4xl mb-2">⏸️</div>
+            <h2 class="arcade-font text-xl font-bold text-amber-400 mb-2">ПАУЗА</h2>
+            <p class="text-slate-300 text-xs mb-5">Натиснете <kbd class="bg-slate-800 border border-slate-600 px-2 py-0.5 rounded text-[11px]">Space</kbd> или <kbd class="bg-slate-800 border border-slate-600 px-2 py-0.5 rounded text-[11px]">P</kbd> за продължение.</p>
+            <button id="resumeBtn" class="btn-arcade bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl text-xs sm:text-sm shadow-md">
+                ПРОДЪЛЖИ
+            </button>
+        </div>
+    </main>
+
+    <!-- Options and Settings Panel -->
+    <section class="w-full max-w-lg glass-panel rounded-2xl p-2 sm:p-3 shrink-0 border border-slate-800 space-y-2 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-1.5">
+            <label class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">Трудност (Скорост):</label>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-semibold">
+                <button class="speed-option px-2 py-1 rounded-lg text-slate-400 hover:text-white transition" data-speed="230">Бавно</button>
+                <button class="speed-option px-2 py-1 rounded-lg bg-green-500 text-slate-950 font-bold transition shadow" data-speed="175">Средно</button>
+                <button class="speed-option px-2 py-1 rounded-lg text-slate-400 hover:text-white transition" data-speed="125">Бързо</button>
+                <button class="speed-option px-2 py-1 rounded-lg text-slate-400 hover:text-white transition" data-speed="90">Инферно</button>
+            </div>
+        </div>
+
+        <div class="h-[1px] bg-slate-800/80"></div>
+
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 block">Безграничен:</span>
+                <span class="text-[10px] text-slate-400">Преминаване през стените</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="wallWrapToggle" class="sr-only peer">
+                <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+            </label>
+        </div>
+    </section>
+
+    <!-- Compact Mobile On-Screen D-Pad (Touch Devices) -->
+    <section class="w-full max-w-lg shrink-0 flex flex-col items-center justify-center gap-1 sm:hidden my-1 touch-none">
+        <button id="btnUp" class="btn-arcade bg-slate-800 active:bg-green-600 border border-slate-700 text-lg w-12 h-9 rounded-xl flex items-center justify-center text-slate-200">⬆️</button>
+        <div class="flex gap-4">
+            <button id="btnLeft" class="btn-arcade bg-slate-800 active:bg-green-600 border border-slate-700 text-lg w-12 h-9 rounded-xl flex items-center justify-center text-slate-200">⬅️</button>
+            <button id="btnDown" class="btn-arcade bg-slate-800 active:bg-green-600 border border-slate-700 text-lg w-12 h-9 rounded-xl flex items-center justify-center text-slate-200">⬇️</button>
+            <button id="btnRight" class="btn-arcade bg-slate-800 active:bg-green-600 border border-slate-700 text-lg w-12 h-9 rounded-xl flex items-center justify-center text-slate-200">➡️</button>
+        </div>
+    </section>
+
+    <!-- Footer Info -->
+    <footer class="text-center text-slate-500 text-[10px] sm:text-xs shrink-0 py-0.5">
+        Управление: <span class="text-slate-400">Стрелки / Swipe</span> | Пауза: <span class="text-slate-400">Space / P</span>
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script type="module" src="js/game.js"></script>
+</body>
+</html>

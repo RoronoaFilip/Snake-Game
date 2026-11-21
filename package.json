@@ -1,0 +1,16 @@
+{
+  "name": "snake-game",
+  "version": "1.0.0",
+  "description": "Retro arcade Snake game (HTML, CSS, vanilla JS)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "dev": "node scripts/serve.js",
+    "build": "node scripts/build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

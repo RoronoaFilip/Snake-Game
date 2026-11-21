@@ -1,0 +1,104 @@
+name: Deploy to GitHub Pages & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0 or v1.0.0)'
+        required: true
+        type: string
+      draft:
+        description: 'Mark the release as a draft?'
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Validate version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${INPUT_VERSION#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid version '$INPUT_VERSION'. Use semver, e.g. 1.0.0 or v1.2.3-beta.1"
+            exit 1
+          fi
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build
+        run: npm run build
+
+      - name: Package release asset
+        run: |
+          cd dist
+          zip -r "../snake-game-${{ steps.version.outputs.tag }}.zip" .
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Upload release asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-zip
+          path: snake-game-*.zip
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-zip
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.build.outputs.tag }}
+          IS_DRAFT: ${{ inputs.draft }}
+          TARGET: ${{ github.sha }}
+        run: |
+          FLAGS=""
+          if [ "$IS_DRAFT" = "true" ]; then FLAGS="--draft"; fi
+          gh release create "$TAG" snake-game-*.zip \
+            --target "$TARGET" \
+            --title "Snake Game $TAG" \
+            --generate-notes \
+            $FLAGS

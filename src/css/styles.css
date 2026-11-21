@@ -1,0 +1,44 @@
+/* Strict CSS lock for Mobile viewport (Zero Scrolling / No Pull-to-Refresh) */
+html, body {
+    overscroll-behavior: none !important;
+    overflow: hidden !important;
+    height: 100dvh !important;
+    width: 100% !important;
+    position: fixed !important;
+    inset: 0 !important;
+    touch-action: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    background-color: #05070d;
+    font-family: 'Yantramanav', sans-serif;
+    color: #f3f4f6;
+}
+
+.arcade-font {
+    font-family: 'Press Start 2P', monospace;
+}
+
+/* Modern Neon Effects */
+.neon-box {
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.25), inset 0 0 15px rgba(34, 197, 94, 0.08);
+    border: 2px solid rgba(34, 197, 94, 0.4);
+}
+.neon-text-green {
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.8), 0 0 16px rgba(34, 197, 94, 0.3);
+}
+.neon-text-gold {
+    text-shadow: 0 0 8px rgba(234, 179, 8, 0.8), 0 0 16px rgba(234, 179, 8, 0.3);
+}
+.glass-panel {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.btn-arcade {
+    transition: transform 0.08s ease, background-color 0.15s ease;
+    touch-action: manipulation;
+}
+.btn-arcade:active {
+    transform: scale(0.94);
+}
